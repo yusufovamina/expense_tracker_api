@@ -3,16 +3,31 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"expense_tracker_api/internal/handlers"
 	"expense_tracker_api/internal/repository"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	repo, err := repository.NewExpenseRepository("expenses.db")
+	// Игнорируем ошибку, если файла .env нет (будут использованы дефолтные значения)
+	_ = godotenv.Load()
+
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "expenses.db"
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	repo, err := repository.NewExpenseRepository(dbPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -21,11 +36,9 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// Базовые middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// Простой endpoint для проверки
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
@@ -40,8 +53,8 @@ func main() {
 		r.Delete("/{id}", expenseHandler.DeleteExpense)
 	})
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	log.Println("Starting server on :" + port)
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }
