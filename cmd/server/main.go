@@ -34,6 +34,9 @@ func main() {
 	r.Route("/expenses", func(r chi.Router) {
 		r.Post("/", expenseHandler.CreateExpense)
 		r.Get("/", expenseHandler.GetExpenses)
+		r.Get("/{id}", expenseHandler.GetExpense)
+		r.Patch("/{id}", expenseHandler.UpdateExpense)
+		r.Delete("/{id}", expenseHandler.DeleteExpense)
 	})
 
 	log.Println("Starting server on :8080")

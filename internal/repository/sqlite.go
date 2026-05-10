@@ -73,3 +73,31 @@ func (r *ExpenseRepository) GetAll() ([]models.Expense, error) {
 	}
 	return expenses, nil
 }
+
+func (r *ExpenseRepository) GetByID(id int) (*models.Expense, error) {
+	query := `SELECT id, amount, category, note, spent_on, created_at FROM expenses WHERE id = ?`
+	row := r.db.QueryRow(query, id)
+
+	var e models.Expense
+	err := row.Scan(&e.ID, &e.Amount, &e.Category, &e.Note, &e.SpentOn, &e.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return &e, err
+}
+
+func (r *ExpenseRepository) Update(id int, e *models.Expense) error {
+	query := `UPDATE expenses SET amount = ?, category = ?, note = ?, spent_on = ? WHERE id = ?`
+	_, err := r.db.Exec(query, e.Amount, e.Category, e.Note, e.SpentOn, id)
+	return err
+}
+
+func (r *ExpenseRepository) Delete(id int) (bool, error) {
+	query := `DELETE FROM expenses WHERE id = ?`
+	res, err := r.db.Exec(query, id)
+	if err != nil {
+		return false, err
+	}
+	rows, _ := res.RowsAffected()
+	return rows > 0, nil
+}
