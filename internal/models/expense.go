@@ -10,3 +10,8 @@ type Expense struct {
 	SpentOn   string    `json:"spent_on"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type Summary struct {
+	TotalAmount float64            `json:"total_amount"`
+	ByCategory  map[string]float64 `json:"by_category"`
+}

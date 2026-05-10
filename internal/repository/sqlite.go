@@ -101,3 +101,33 @@ func (r *ExpenseRepository) Delete(id int) (bool, error) {
 	rows, _ := res.RowsAffected()
 	return rows > 0, nil
 }
+
+func (r *ExpenseRepository) GetSummary() (*models.Summary, error) {
+	summary := &models.Summary{
+		ByCategory: make(map[string]float64),
+	}
+
+	// Total amount
+	row := r.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM expenses`)
+	if err := row.Scan(&summary.TotalAmount); err != nil {
+		return nil, err
+	}
+
+	// Group by category
+	rows, err := r.db.Query(`SELECT category, SUM(amount) FROM expenses GROUP BY category`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cat string
+		var sum float64
+		if err := rows.Scan(&cat, &sum); err != nil {
+			return nil, err
+		}
+		summary.ByCategory[cat] = sum
+	}
+
+	return summary, nil
+}

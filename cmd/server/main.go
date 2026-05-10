@@ -34,6 +34,7 @@ func main() {
 	r.Route("/expenses", func(r chi.Router) {
 		r.Post("/", expenseHandler.CreateExpense)
 		r.Get("/", expenseHandler.GetExpenses)
+		r.Get("/summary", expenseHandler.GetSummary)
 		r.Get("/{id}", expenseHandler.GetExpense)
 		r.Patch("/{id}", expenseHandler.UpdateExpense)
 		r.Delete("/{id}", expenseHandler.DeleteExpense)
