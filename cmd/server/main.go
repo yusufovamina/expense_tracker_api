@@ -4,11 +4,21 @@ import (
 	"log"
 	"net/http"
 
+	"expense_tracker_api/internal/handlers"
+	"expense_tracker_api/internal/repository"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
+	repo, err := repository.NewExpenseRepository("expenses.db")
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	expenseHandler := handlers.NewExpenseHandler(repo)
+
 	r := chi.NewRouter()
 
 	// Базовые middleware
@@ -19,6 +29,11 @@ func main() {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
+	})
+
+	r.Route("/expenses", func(r chi.Router) {
+		r.Post("/", expenseHandler.CreateExpense)
+		r.Get("/", expenseHandler.GetExpenses)
 	})
 
 	log.Println("Starting server on :8080")
